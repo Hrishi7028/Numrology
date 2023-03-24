@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@700&display=swap" rel="stylesheet">
+    <title>Document</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        .main_box {
+            display: flex;
+            position: relative;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 70vh;
+        }
+        
+        .inner_box {
+            height: 100%;
+            width: 50%;
+            position: absolute;
+            text-align: center;
+        }
+            
+        .title_heading {
+            font-family: 'Baloo Bhai 2', cursive;
+            margin-bottom: 2.5rem;
+        }
+        .name_p {
+            margin-top: 10px !important;
+            margin-bottom: 0px !important; 
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main_box">
+        <div class="inner_box" style="height:100px">
+            <h4 class="title_heading">Name Horoscscope</h4>
+            <div class="form__div">
+                <form>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="nameid" aria-describedby="emailHelp"
+                        placeholder="Enter Your Full Name"
+                        >
+                    </div>
+                    <button id='btnid' type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="ans__div" id="ans__id"></div>
+        </div>
+    </div>
+</body>
+<script>
+    let btn = document.getElementById('btnid')
+    async function getData() {
+        let response = await fetch(`./AlphaNum.csv`);
+        let table = await response.text()
+        let array = table.split('\n');
+        var AlphNum = new Map()
+        array.map((item) => {
+            AlphNum.set(item[0], parseInt(item[2]));
+        })
+
+
+        //NumPrediction mapping
+        let response1 = await fetch(`./NumPrediction.csv`);
+        let data = await response1.text()
+        var NumberPredictionMap = new Map()
+        let NumPredictionArray = data.split('\n');
+        NumPredictionArray.map((item) => {
+            var num = parseInt(item[0] + item[1])
+            var char = item.substring(3);
+            NumberPredictionMap.set(num, char);
+        })
+
+
+        //function for checking the given character is alphbet or not
+        function isAlpha(inputtxt) {
+            var letters = /^[A-Za-z]+$/;
+            if (inputtxt.match(letters)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        let fullName = document.getElementById('nameid').value;
+        if(fullName.length <= 3) {
+            alert('please enter atleast 3 characters')
+            return;
+        } 
+        //console.log(fullName)
+        var NameArray = fullName.split(" ");
+        console.log(NameArray)
+        var totalSum = 0;
+        var ansArray = [];
+        NameArray.map((item) => {
+            var string = item.toUpperCase();
+            var i = 0;
+            var count = 0;
+
+            while (i < string.length) {
+                if (!isAlpha(string[i])) {
+                    i++;
+                    continue;
+                }
+
+                count += AlphNum.get(string[i]);
+                totalSum += AlphNum.get(string[i]);
+                i++;
+            }
+            if (count != 0)
+                ansArray.push(count)
+        })
+
+        //calculating ans storing into p tag
+        ansArray.map((item, idx) => {
+            let name = NameArray[idx];
+            let divele = document.getElementById('ans__id');
+            console.log(divele)
+
+            let line = document.createElement("p");
+            line.className = 'name_p'
+            line.innerHTML = `<p>${name.charAt(0).toUpperCase() + name.slice(1)} your predicted Number is <b>${item}</b> you are <b>${NumberPredictionMap.get(item)}</b> person</p>`;
+            divele.appendChild(line);
+
+        })
+
+        //fullNameele = document.getElementById('fullNameid');
+        let divele = document.getElementById('ans__id')
+        let fullNamep = document.createElement("p");
+        fullNamep.innerHTML = `${fullName.charAt(0).toUpperCase() + fullName.slice(1)} Your Predicted Number is <b>${totalSum}</b> & you are <b>${NumberPredictionMap.get(totalSum)}</b> person`;
+        divele.appendChild(fullNamep);
+    }
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault()
+        let divele = document.getElementById('ans__id')
+        while (divele.firstChild) {
+            divele.removeChild(divele.firstChild);
+        }
+        getData()
+    })
+</script>
+
+</html>
